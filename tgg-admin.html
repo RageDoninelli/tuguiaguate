@@ -173,6 +173,12 @@
     banner.style.display = "block";
   }
 
+  setTimeout(function () {
+    if (!supabaseClient) {
+      mostrarErrorCarga("Llevamos más de 8 segundos esperando la librería de Supabase (cdn.jsdelivr.net / unpkg.com) y no llegó ni con error ni con éxito. Esto es típico de una red que bloquea esos dominios en silencio. Probá: 1) cambiar de WiFi a datos móviles (o al revés), 2) desactivar VPN si usás una, 3) probar desde otra red por completo.");
+    }
+  }, 8000);
+
   function cargarCDNAlterno() {
     const s = document.createElement("script");
     s.src = "https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js";
