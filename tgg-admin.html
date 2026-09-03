@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TGG Admin</title>
+<style>
+  :root {
+    --div: #7C3AED; --cines: #0EA5E9; --dep: #14B8A6; --comida: #22C55E;
+    --hotel: #4ADE80; --fiestas: #F97316; --conciertos: #C2410C; --teatro: #DC2626;
+    --bg: #0F1115; --card: #1A1D24; --text: #F5F5F7; --muted: #9CA3AF;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    padding: 20px 16px 60px; max-width: 560px; margin: 0 auto;
+  }
+  h1 { font-size: 19px; margin-bottom: 4px; }
+  .sub { color: var(--muted); font-size: 13px; margin-bottom: 22px; }
+
+  .card { background: var(--card); border: 1px solid #2A2E37; border-radius: 16px; padding: 18px; margin-bottom: 18px; }
+  label { display: block; font-size: 12.5px; font-weight: 600; color: var(--muted); margin-bottom: 5px; margin-top: 12px; }
+  label:first-child { margin-top: 0; }
+  input, select, textarea {
+    width: 100%; background: #12141a; border: 1px solid #2A2E37; border-radius: 10px;
+    padding: 10px 12px; color: var(--text); font-size: 14px; outline: none;
+  }
+  input:focus, select:focus, textarea:focus { border-color: #7C3AED; }
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .chk-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 6px; }
+  .chk-opt { display: flex; align-items: center; gap: 5px; font-size: 12.5px; background: #12141a; border: 1px solid #2A2E37; padding: 6px 10px; border-radius: 8px; cursor: pointer; }
+  .chk-opt input { width: auto; }
+
+  button {
+    border: none; border-radius: 10px; font-weight: 700; font-size: 13.5px; cursor: pointer; padding: 11px 16px;
+  }
+  .btn-primary { background: linear-gradient(135deg, #7C3AED, #DC2626); color: white; width: 100%; margin-top: 16px; }
+  .btn-danger { background: #DC262622; color: #FCA5A5; border: 1px solid #DC262655; }
+  .btn-logout { background: var(--card); color: var(--muted); border: 1px solid #2A2E37; }
+
+  #login-view { max-width: 340px; margin: 60px auto 0; }
+  .error-msg { color: #FCA5A5; font-size: 12.5px; margin-top: 10px; display: none; }
+  .ok-msg { color: #86EFAC; font-size: 12.5px; margin-top: 10px; display: none; }
+
+  header.topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; }
+
+  .neg-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #22252c; gap: 10px; }
+  .neg-item:last-child { border-bottom: none; }
+  .neg-name { font-size: 13.5px; font-weight: 600; }
+  .neg-cat { font-size: 11px; color: var(--muted); }
+  #admin-view { display: none; }
+</style>
+</head>
+<body>
+
+<div id="login-view">
+  <h1>🔐 TGG Admin</h1>
+  <div class="sub">Acceso solo para administradores</div>
+  <div class="card">
+    <label>Correo</label>
+    <input type="email" id="login-email" placeholder="admin@tuguiaguate.com">
+    <label>Contraseña</label>
+    <input type="password" id="login-pass" placeholder="••••••••">
+    <button class="btn-primary" id="btn-login">Entrar</button>
+    <div class="error-msg" id="login-error"></div>
+    <div class="sub" style="margin-top:16px; margin-bottom:0;">¿Primera vez? <a href="#" id="link-signup" style="color:#3B82F6;">Crear cuenta admin</a></div>
+  </div>
+</div>
+
+<div id="admin-view">
+  <header class="topbar">
+    <div>
+      <h1>Panel de negocios</h1>
+      <div class="sub" id="user-email"></div>
+    </div>
+    <button class="btn-logout" id="btn-logout">Salir</button>
+  </header>
+
+  <div class="card">
+    <div style="font-weight:700; font-size:14px; margin-bottom:4px;">➕ Agregar negocio</div>
+    <label>Nombre</label>
+    <input type="text" id="f-nombre" placeholder="Ej: Café La Esquina">
+
+    <label>Categoría</label>
+    <select id="f-categoria">
+      <option value="Diversión">Diversión</option>
+      <option value="Cines">Cines</option>
+      <option value="Deportes">Deportes</option>
+      <option value="Comida y bebida" selected>Comida y bebida</option>
+      <option value="Hotel y Spa">Hotel y Spa</option>
+      <option value="Fiestas">Fiestas</option>
+      <option value="Conciertos">Conciertos</option>
+      <option value="Teatro">Teatro</option>
+    </select>
+
+    <div class="row2">
+      <div>
+        <label>Emoji</label>
+        <input type="text" id="f-emoji" placeholder="🍽️" maxlength="4">
+      </div>
+      <div>
+        <label>Zona (0 = fuera de ciudad)</label>
+        <input type="number" id="f-zona" placeholder="10">
+      </div>
+    </div>
+
+    <div class="row2">
+      <div>
+        <label>Precio (1-4)</label>
+        <input type="number" id="f-precio" min="1" max="4" value="2">
+      </div>
+      <div>
+        <label>Duración</label>
+        <input type="text" id="f-duracion" placeholder="2h">
+      </div>
+    </div>
+
+    <label>Texto corto (meta)</label>
+    <input type="text" id="f-meta" placeholder="Zona 10 · $$ · 4.7★">
+
+    <label>Compañía recomendada</label>
+    <div class="chk-row">
+      <label class="chk-opt"><input type="checkbox" value="pareja"> Pareja</label>
+      <label class="chk-opt"><input type="checkbox" value="amigos"> Amigos</label>
+      <label class="chk-opt"><input type="checkbox" value="familia"> Familia</label>
+      <label class="chk-opt"><input type="checkbox" value="solo"> Solo/a</label>
+    </div>
+
+    <label class="chk-opt" style="margin-top:14px; display:inline-flex;">
+      <input type="checkbox" id="f-patrocinado"> Marcar como patrocinado
+    </label>
+
+    <button class="btn-primary" id="btn-guardar">Guardar negocio</button>
+    <div class="error-msg" id="form-error"></div>
+    <div class="ok-msg" id="form-ok">Negocio guardado ✅</div>
+  </div>
+
+  <div class="card">
+    <div style="font-weight:700; font-size:14px; margin-bottom:8px;">📋 Negocios existentes</div>
+    <div id="lista-negocios">Cargando...</div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+  const SUPABASE_URL = "https://ecdgpjarhxigxuooqsal.supabase.co";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjZGdwamFyaHhpZ3h1b29xc2FsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgzOTA0NDIsImV4cCI6MjEwMzk2NjQ0Mn0.wn05ET7DasdJ5r3W3x_31sBPCq7KbKURWmPkEGSqP4Q";
+  const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  const loginView = document.getElementById("login-view");
+  const adminView = document.getElementById("admin-view");
+  const loginError = document.getElementById("login-error");
+
+  async function checkSesion() {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session) {
+      mostrarAdmin(session.user.email);
+    } else {
+      loginView.style.display = "block";
+      adminView.style.display = "none";
+    }
+  }
+
+  function mostrarAdmin(email) {
+    loginView.style.display = "none";
+    adminView.style.display = "block";
+    document.getElementById("user-email").textContent = email;
+    cargarLista();
+  }
+
+  document.getElementById("btn-login").addEventListener("click", async () => {
+    loginError.style.display = "none";
+    const email = document.getElementById("login-email").value.trim();
+    const password = document.getElementById("login-pass").value;
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) {
+      loginError.textContent = "No se pudo entrar: " + error.message;
+      loginError.style.display = "block";
+      return;
+    }
+    mostrarAdmin(data.user.email);
+  });
+
+  document.getElementById("link-signup").addEventListener("click", async (e) => {
+    e.preventDefault();
+    const email = document.getElementById("login-email").value.trim();
+    const password = document.getElementById("login-pass").value;
+    if (!email || !password) {
+      loginError.textContent = "Escribí correo y contraseña arriba, luego click en 'Crear cuenta admin'.";
+      loginError.style.display = "block";
+      return;
+    }
+    const { data, error } = await supabase.auth.signUp({ email, password });
+    if (error) {
+      loginError.textContent = "Error al crear cuenta: " + error.message;
+      loginError.style.display = "block";
+      return;
+    }
+    loginError.style.color = "#86EFAC";
+    loginError.textContent = "Cuenta creada. Si pide confirmación revisa tu correo, si no, ya podés entrar con 'Entrar'.";
+    loginError.style.display = "block";
+  });
+
+  document.getElementById("btn-logout").addEventListener("click", async () => {
+    await supabase.auth.signOut();
+    checkSesion();
+  });
+
+  document.getElementById("btn-guardar").addEventListener("click", async () => {
+    const formError = document.getElementById("form-error");
+    const formOk = document.getElementById("form-ok");
+    formError.style.display = "none";
+    formOk.style.display = "none";
+
+    const categoria = document.getElementById("f-categoria").value;
+    const colorMap = { "Diversión":"div", "Cines":"cines", "Deportes":"dep", "Comida y bebida":"comida", "Hotel y Spa":"hotel", "Fiestas":"fiestas", "Conciertos":"conciertos", "Teatro":"teatro" };
+
+    const compania = Array.from(document.querySelectorAll(".chk-row input:checked")).map(c => c.value);
+
+    const nuevo = {
+      nombre: document.getElementById("f-nombre").value.trim(),
+      categoria,
+      color_var: colorMap[categoria],
+      emoji: document.getElementById("f-emoji").value.trim() || "📍",
+      meta: document.getElementById("f-meta").value.trim(),
+      zona: Number(document.getElementById("f-zona").value) || 0,
+      precio: Number(document.getElementById("f-precio").value) || 2,
+      duracion: document.getElementById("f-duracion").value.trim() || "2h",
+      compania: compania.length ? compania : ["pareja","amigos","familia","solo"],
+      patrocinado: document.getElementById("f-patrocinado").checked,
+    };
+
+    if (!nuevo.nombre || !nuevo.meta) {
+      formError.textContent = "Nombre y texto corto son obligatorios.";
+      formError.style.display = "block";
+      return;
+    }
+
+    const { error } = await supabase.from("negocios").insert(nuevo);
+    if (error) {
+      formError.textContent = "No se pudo guardar: " + error.message;
+      formError.style.display = "block";
+      return;
+    }
+    formOk.style.display = "block";
+    document.getElementById("f-nombre").value = "";
+    document.getElementById("f-meta").value = "";
+    document.querySelectorAll(".chk-row input").forEach(c => c.checked = false);
+    document.getElementById("f-patrocinado").checked = false;
+    cargarLista();
+  });
+
+  async function cargarLista() {
+    const cont = document.getElementById("lista-negocios");
+    const { data, error } = await supabase.from("negocios").select("*").order("creado_en", { ascending: false });
+    if (error) {
+      cont.innerHTML = `<div class="sub">Error al cargar: ${error.message}</div>`;
+      return;
+    }
+    if (!data || data.length === 0) {
+      cont.innerHTML = `<div class="sub">Todavía no hay negocios.</div>`;
+      return;
+    }
+    cont.innerHTML = "";
+    data.forEach(n => {
+      const item = document.createElement("div");
+      item.className = "neg-item";
+      item.innerHTML = `
+        <div>
+          <div class="neg-name">${n.emoji} ${n.nombre} ${n.patrocinado ? '⭐' : ''}</div>
+          <div class="neg-cat">${n.categoria} · Zona ${n.zona}</div>
+        </div>
+        <button class="btn-danger" data-id="${n.id}">Borrar</button>
+      `;
+      item.querySelector("button").addEventListener("click", async () => {
+        if (!confirm(`¿Borrar "${n.nombre}"?`)) return;
+        await supabase.from("negocios").delete().eq("id", n.id);
+        cargarLista();
+      });
+      cont.appendChild(item);
+    });
+  }
+
+  checkSesion();
+</script>
+</body>
+</html>

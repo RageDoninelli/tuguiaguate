@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TuGuiaGuate</title>
+<style>
+  :root {
+    --div: #7C3AED;
+    --cines: #0EA5E9;
+    --dep: #14B8A6;
+    --comida: #22C55E;
+    --hotel: #4ADE80;
+    --fiestas: #F97316;
+    --conciertos: #C2410C;
+    --teatro: #DC2626;
+    --bg: #0F1115;
+    --card: #1A1D24;
+    --text: #F5F5F7;
+    --muted: #9CA3AF;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    padding-bottom: 40px;
+  }
+
+  header {
+    padding: 20px 16px 16px;
+    position: sticky;
+    top: 0;
+    background: var(--bg);
+    z-index: 10;
+    border-bottom: 1px solid #22252c;
+  }
+
+  .logo-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  .logo-bubble {
+    width: 34px;
+    height: 34px;
+    background: #0B1E4D;
+    border-radius: 8px 8px 8px 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 700;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+  .logo-text { font-size: 17px; font-weight: 600; }
+  .logo-text .gray { color: var(--muted); }
+  .logo-text .blue { color: #3B82F6; }
+
+  .search-bar {
+    display: flex;
+    align-items: center;
+    background: var(--card);
+    border: 1px solid #2A2E37;
+    border-radius: 14px;
+    padding: 12px 14px;
+    gap: 10px;
+  }
+  .search-bar input {
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--text);
+    font-size: 15px;
+    width: 100%;
+  }
+  .search-bar input::placeholder { color: var(--muted); }
+
+  .today-cta {
+    margin: 16px;
+    padding: 16px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, #7C3AED, #DC2626);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+  }
+  .today-cta h2 { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
+  .today-cta p { font-size: 12.5px; color: rgba(255,255,255,0.85); }
+  .today-cta button {
+    background: white;
+    color: #1A1D24;
+    border: none;
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-weight: 700;
+    font-size: 13px;
+    white-space: nowrap;
+  }
+
+  .cat-scroll {
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    padding: 4px 16px 20px;
+    scrollbar-width: none;
+  }
+  .cat-scroll::-webkit-scrollbar { display: none; }
+
+  .cat-chip {
+    flex-shrink: 0;
+    padding: 9px 16px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    color: white;
+    white-space: nowrap;
+    opacity: 0.92;
+    cursor: pointer;
+    transition: opacity 0.15s, transform 0.1s;
+    user-select: none;
+  }
+  .cat-chip:active { transform: scale(0.96); }
+  .cat-chip.active { opacity: 1; box-shadow: 0 0 0 2px rgba(255,255,255,0.4) inset; }
+
+  .empty-state {
+    text-align: center;
+    color: var(--muted);
+    font-size: 13.5px;
+    padding: 30px 10px;
+  }
+
+  /* Modal ¿Qué hacemos hoy? */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    z-index: 100;
+    align-items: flex-end;
+    justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal-sheet {
+    background: var(--bg);
+    width: 100%;
+    max-width: 480px;
+    border-radius: 22px 22px 0 0;
+    padding: 22px 18px 26px;
+    max-height: 88vh;
+    overflow-y: auto;
+    animation: slideUp 0.22s ease-out;
+  }
+  @keyframes slideUp { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+  .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+  .modal-header h2 { font-size: 18px; font-weight: 700; }
+  .modal-close { background: var(--card); border: none; color: var(--text); width: 30px; height: 30px; border-radius: 50%; font-size: 16px; cursor: pointer; }
+  .modal-sub { color: var(--muted); font-size: 13px; margin-bottom: 18px; }
+
+  .q-block { margin-bottom: 18px; }
+  .q-label { font-size: 13.5px; font-weight: 600; margin-bottom: 9px; }
+  .q-options { display: flex; gap: 8px; flex-wrap: wrap; }
+  .q-opt {
+    padding: 9px 14px;
+    border-radius: 12px;
+    background: var(--card);
+    border: 1px solid #2A2E37;
+    font-size: 13px;
+    cursor: pointer;
+    user-select: none;
+    transition: all 0.12s;
+  }
+  .q-opt.selected { background: #7C3AED33; border-color: #7C3AED; color: #C4B5FD; }
+
+  .btn-recomendar {
+    width: 100%;
+    margin-top: 6px;
+    padding: 14px;
+    border-radius: 14px;
+    border: none;
+    background: linear-gradient(135deg, #7C3AED, #DC2626);
+    color: white;
+    font-weight: 700;
+    font-size: 14.5px;
+    cursor: pointer;
+  }
+
+  .resultado-box { margin-top: 20px; border-top: 1px solid #22252c; padding-top: 18px; }
+  .resultado-box .section-title { margin-bottom: 10px; }
+
+  section { padding: 0 16px; margin-bottom: 26px; }
+  .section-title {
+    font-size: 15px;
+    font-weight: 700;
+    margin-bottom: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .section-title span.link { font-size: 12px; color: var(--muted); font-weight: 500; }
+
+  .biz-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .biz-card {
+    background: var(--card);
+    border: 1px solid #22252c;
+    border-radius: 16px;
+    overflow: hidden;
+    display: flex;
+    gap: 12px;
+    padding: 12px;
+  }
+  .biz-thumb {
+    width: 74px;
+    height: 74px;
+    border-radius: 12px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 26px;
+  }
+  .biz-info { flex: 1; min-width: 0; }
+  .biz-name { font-size: 14.5px; font-weight: 700; margin-bottom: 3px; }
+  .biz-cat {
+    display: inline-block;
+    font-size: 10.5px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 6px;
+    color: white;
+    margin-bottom: 6px;
+  }
+  .biz-meta { font-size: 12px; color: var(--muted); display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .badge-sponsor {
+    font-size: 10px;
+    font-weight: 700;
+    color: #FFD166;
+    border: 1px solid #FFD16655;
+    padding: 1px 6px;
+    border-radius: 5px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-row">
+    <div class="logo-bubble">g</div>
+    <div class="logo-text"><span class="gray">tuguiaguate</span><span class="blue">.com</span></div>
+  </div>
+  <div class="search-bar">
+    <span>🔍</span>
+    <input type="text" placeholder="Buscar lugares, actividades, eventos...">
+  </div>
+</header>
+
+<div class="today-cta">
+  <div>
+    <h2>¿Qué hacemos hoy?</h2>
+    <p>Dinos dónde estás, tu presupuesto y tu compañía</p>
+  </div>
+  <button>Descubrir</button>
+</div>
+
+<div class="cat-scroll">
+  <div class="cat-chip active" data-cat="Todos" style="background:#2A2E37;">Todos</div>
+  <div class="cat-chip" data-cat="Diversión" style="background: var(--div);">Diversión</div>
+  <div class="cat-chip" data-cat="Cines" style="background: var(--cines);">Cines</div>
+  <div class="cat-chip" data-cat="Deportes" style="background: var(--dep);">Deportes</div>
+  <div class="cat-chip" data-cat="Comida y bebida" style="background: var(--comida);">Comida y bebida</div>
+  <div class="cat-chip" data-cat="Hotel y Spa" style="background: var(--hotel); color: #0F1115;">Hotel y Spa</div>
+  <div class="cat-chip" data-cat="Fiestas" style="background: var(--fiestas);">Fiestas</div>
+  <div class="cat-chip" data-cat="Conciertos" style="background: var(--conciertos);">Conciertos</div>
+  <div class="cat-chip" data-cat="Teatro" style="background: var(--teatro);">Teatro</div>
+</div>
+
+<section>
+  <div class="section-title" id="section-title">Destacados cerca de ti <span class="link">Ver todo</span></div>
+  <div class="biz-list" id="biz-list"></div>
+</section>
+
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal-sheet">
+    <div class="modal-header">
+      <h2>¿Qué hacemos hoy?</h2>
+      <button class="modal-close" id="modal-close">✕</button>
+    </div>
+    <div class="modal-sub">Respondé rápido y te mostramos las mejores opciones</div>
+
+    <div class="q-block">
+      <div class="q-label">📍 ¿Dónde estás?</div>
+      <div class="q-options" id="opt-zona">
+        <div class="q-opt" data-val="1">Zona 1</div>
+        <div class="q-opt" data-val="4">Zona 4</div>
+        <div class="q-opt" data-val="10">Zona 10</div>
+        <div class="q-opt" data-val="11">Zona 11</div>
+        <div class="q-opt" data-val="14">Zona 14</div>
+        <div class="q-opt selected" data-val="cualquiera">Cualquiera</div>
+      </div>
+    </div>
+
+    <div class="q-block">
+      <div class="q-label">💰 Presupuesto</div>
+      <div class="q-options" id="opt-precio">
+        <div class="q-opt" data-val="1">$ Económico</div>
+        <div class="q-opt" data-val="2">$$ Moderado</div>
+        <div class="q-opt" data-val="3">$$$ Alto</div>
+        <div class="q-opt selected" data-val="cualquiera">No importa</div>
+      </div>
+    </div>
+
+    <div class="q-block">
+      <div class="q-label">👥 ¿Con quién vas?</div>
+      <div class="q-options" id="opt-compania">
+        <div class="q-opt selected" data-val="pareja">Pareja</div>
+        <div class="q-opt" data-val="amigos">Amigos</div>
+        <div class="q-opt" data-val="familia">Familia</div>
+        <div class="q-opt" data-val="solo">Solo/a</div>
+      </div>
+    </div>
+
+    <div class="q-block">
+      <div class="q-label">⏱️ ¿Cuánto tiempo tenés?</div>
+      <div class="q-options" id="opt-tiempo">
+        <div class="q-opt" data-val="corto">1-2 horas</div>
+        <div class="q-opt selected" data-val="medio">Media tarde</div>
+        <div class="q-opt" data-val="largo">Todo el día</div>
+      </div>
+    </div>
+
+    <button class="btn-recomendar" id="btn-recomendar">Ver recomendaciones</button>
+
+    <div class="resultado-box" id="resultado-box" style="display:none;">
+      <div class="section-title">Esto va bien para vos</div>
+      <div class="biz-list" id="resultado-list"></div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+  const SUPABASE_URL = "https://ecdgpjarhxigxuooqsal.supabase.co";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjZGdwamFyaHhpZ3h1b29xc2FsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgzOTA0NDIsImV4cCI6MjEwMzk2NjQ0Mn0.wn05ET7DasdJ5r3W3x_31sBPCq7KbKURWmPkEGSqP4Q";
+  const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+</script>
+<script>
+  // Datos de respaldo (se usan solo si Supabase aún no tiene la tabla/datos)
+  const negocios_fallback = [
+    { nombre: "La Terraza Zona 10", cat: "Comida y bebida", color: "var(--comida)", emoji: "🍽️", meta: "Zona 10 · $$ · 4.7★", sponsor: true, zona: 10, precio: 2, compania: ["pareja", "amigos", "familia"], duracion: "2h" },
+    { nombre: "Cine Fusión Miraflores", cat: "Cines", color: "var(--cines)", emoji: "🎬", meta: "Zona 11 · Estrenos hoy", zona: 11, precio: 1, compania: ["solo", "pareja", "amigos", "familia"], duracion: "2-3h" },
+    { nombre: "Club Deportivo Los Próceres", cat: "Deportes", color: "var(--dep)", emoji: "⚽", meta: "Zona 14 · $$$ · Cancha disponible", zona: 14, precio: 3, compania: ["amigos"], duracion: "2h" },
+    { nombre: "Hotel Boutique Casa Santo Domingo", cat: "Hotel y Spa", color: "var(--hotel)", emoji: "🛏️", meta: "Antigua Guatemala · $$$$ · 4.9★", sponsor: true, zona: 0, precio: 4, compania: ["pareja", "solo"], duracion: "todo el día" },
+    { nombre: "Rooftop Fiesta Nocturna", cat: "Fiestas", color: "var(--fiestas)", emoji: "🎉", meta: "Zona 10 · Viernes y sábado", zona: 10, precio: 2, compania: ["amigos"], duracion: "3h+" },
+    { nombre: "Concierto Marimba en Vivo", cat: "Conciertos", color: "var(--conciertos)", emoji: "🎵", meta: "Parque Central · Gratis", zona: 1, precio: 1, compania: ["familia", "pareja", "solo", "amigos"], duracion: "1-2h" },
+    { nombre: "Teatro Nacional Miguel Ángel Asturias", cat: "Teatro", color: "var(--teatro)", emoji: "🎭", meta: "Zona 1 · Función 8pm", zona: 1, precio: 2, compania: ["pareja", "solo", "familia"], duracion: "2h" },
+    { nombre: "Kartódromo Diversión Extrema", cat: "Diversión", color: "var(--div)", emoji: "🏎️", meta: "Zona 4 · $$ · Familiar", zona: 4, precio: 2, compania: ["familia", "amigos"], duracion: "1-2h" },
+  ];
+
+  let negocios = [];
+
+  async function cargarNegocios() {
+    try {
+      const { data, error } = await supabase.from("negocios").select("*");
+      if (error || !data || data.length === 0) throw error || new Error("sin datos");
+      // Mapeamos columnas de la tabla al formato que usa el render
+      negocios = data.map(n => ({
+        nombre: n.nombre,
+        cat: n.categoria,
+        color: `var(--${n.color_var})`,
+        emoji: n.emoji,
+        meta: n.meta,
+        sponsor: n.patrocinado,
+        zona: n.zona,
+        precio: n.precio,
+        compania: n.compania,
+        duracion: n.duracion,
+      }));
+      console.log("Negocios cargados desde Supabase:", negocios.length);
+    } catch (e) {
+      console.warn("No se pudo leer de Supabase (¿tabla aún no creada?). Usando datos de ejemplo.", e);
+      negocios = negocios_fallback;
+    }
+    renderLista();
+  }
+
+  const list = document.getElementById("biz-list");
+  const titleEl = document.getElementById("section-title");
+  const searchInput = document.querySelector(".search-bar input");
+  let catActiva = "Todos";
+  let textoBusqueda = "";
+
+  function renderLista() {
+    let filtrados = negocios.filter(n => catActiva === "Todos" || n.cat === catActiva);
+    if (textoBusqueda.trim() !== "") {
+      const q = textoBusqueda.toLowerCase();
+      filtrados = filtrados.filter(n =>
+        n.nombre.toLowerCase().includes(q) || n.cat.toLowerCase().includes(q)
+      );
+    }
+    // Patrocinados primero
+    filtrados.sort((a, b) => (b.sponsor ? 1 : 0) - (a.sponsor ? 1 : 0));
+
+    list.innerHTML = "";
+    if (filtrados.length === 0) {
+      list.innerHTML = `<div class="empty-state">No encontramos nada por aquí todavía 🔎</div>`;
+      return;
+    }
+    filtrados.forEach(n => {
+      const card = document.createElement("div");
+      card.className = "biz-card";
+      card.innerHTML = `
+        <div class="biz-thumb" style="background:${n.color}22;">${n.emoji}</div>
+        <div class="biz-info">
+          <div class="biz-name">${n.nombre}</div>
+          <div class="biz-cat" style="background:${n.color};">${n.cat}</div>
+          <div class="biz-meta">
+            <span>${n.meta}</span>
+            ${n.sponsor ? '<span class="badge-sponsor">PATROCINADO</span>' : ''}
+          </div>
+        </div>
+      `;
+      list.appendChild(card);
+    });
+  }
+
+  document.querySelectorAll(".cat-chip").forEach(chip => {
+    chip.addEventListener("click", () => {
+      document.querySelectorAll(".cat-chip").forEach(c => c.classList.remove("active"));
+      chip.classList.add("active");
+      catActiva = chip.dataset.cat;
+      titleEl.innerHTML = (catActiva === "Todos" ? "Destacados cerca de ti" : catActiva) + ' <span class="link">Ver todo</span>';
+      renderLista();
+    });
+  });
+
+  searchInput.addEventListener("input", (e) => {
+    textoBusqueda = e.target.value;
+    renderLista();
+  });
+
+  cargarNegocios();
+  const overlay = document.getElementById("modal-overlay");
+  const btnDescubrir = document.querySelector(".today-cta button");
+  const btnCerrar = document.getElementById("modal-close");
+  const btnRecomendar = document.getElementById("btn-recomendar");
+  const resultadoBox = document.getElementById("resultado-box");
+  const resultadoList = document.getElementById("resultado-list");
+
+  const seleccion = { zona: "cualquiera", precio: "cualquiera", compania: "pareja", tiempo: "medio" };
+
+  function abrirModal() {
+    overlay.classList.add("open");
+    resultadoBox.style.display = "none";
+  }
+  function cerrarModal() { overlay.classList.remove("open"); }
+
+  btnDescubrir.addEventListener("click", abrirModal);
+  btnCerrar.addEventListener("click", cerrarModal);
+  overlay.addEventListener("click", (e) => { if (e.target === overlay) cerrarModal(); });
+
+  function activarGrupoOpciones(groupId, key) {
+    const group = document.getElementById(groupId);
+    group.querySelectorAll(".q-opt").forEach(opt => {
+      opt.addEventListener("click", () => {
+        group.querySelectorAll(".q-opt").forEach(o => o.classList.remove("selected"));
+        opt.classList.add("selected");
+        seleccion[key] = opt.dataset.val;
+      });
+    });
+  }
+  activarGrupoOpciones("opt-zona", "zona");
+  activarGrupoOpciones("opt-precio", "precio");
+  activarGrupoOpciones("opt-compania", "compania");
+  activarGrupoOpciones("opt-tiempo", "tiempo");
+
+  const duracionMap = { corto: ["1-2h"], medio: ["2h", "2-3h", "1-2h"], largo: ["3h+", "todo el día", "2h", "2-3h", "1-2h"] };
+
+  function calcularRecomendaciones() {
+    let candidatos = negocios.map(n => {
+      let score = 0;
+      if (seleccion.zona === "cualquiera" || n.zona === Number(seleccion.zona)) score += 3;
+      if (seleccion.precio === "cualquiera" || n.precio <= Number(seleccion.precio)) score += 2;
+      if (n.compania.includes(seleccion.compania)) score += 3;
+      if (duracionMap[seleccion.tiempo].includes(n.duracion)) score += 2;
+      if (n.sponsor) score += 1;
+      return { ...n, score };
+    });
+    // Solo mostramos las que al menos calzan en compañía (filtro duro mínimo)
+    candidatos = candidatos.filter(n => n.compania.includes(seleccion.compania));
+    candidatos.sort((a, b) => b.score - a.score);
+    return candidatos.slice(0, 4);
+  }
+
+  btnRecomendar.addEventListener("click", () => {
+    const top = calcularRecomendaciones();
+    resultadoList.innerHTML = "";
+    if (top.length === 0) {
+      resultadoList.innerHTML = `<div class="empty-state">No encontramos algo perfecto, pero probá ajustando la compañía o el presupuesto 🙂</div>`;
+    } else {
+      top.forEach(n => {
+        const card = document.createElement("div");
+        card.className = "biz-card";
+        card.innerHTML = `
+          <div class="biz-thumb" style="background:${n.color}22;">${n.emoji}</div>
+          <div class="biz-info">
+            <div class="biz-name">${n.nombre}</div>
+            <div class="biz-cat" style="background:${n.color};">${n.cat}</div>
+            <div class="biz-meta">
+              <span>${n.meta}</span>
+              ${n.sponsor ? '<span class="badge-sponsor">PATROCINADO</span>' : ''}
+            </div>
+          </div>
+        `;
+        resultadoList.appendChild(card);
+      });
+    }
+    resultadoBox.style.display = "block";
+    resultadoBox.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  });
+</script>
+
+</body>
+</html>
