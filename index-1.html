@@ -246,6 +246,20 @@
     padding: 1px 6px;
     border-radius: 5px;
   }
+  .btn-waze {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #38BDF8;
+    background: #38BDF822;
+    border: 1px solid #38BDF855;
+    padding: 3px 9px;
+    border-radius: 7px;
+    text-decoration: none;
+    white-space: nowrap;
+  }
 </style>
 </head>
 <body>
@@ -382,6 +396,7 @@
         precio: n.precio,
         compania: n.compania,
         duracion: n.duracion,
+        waze: n.waze_url,
       }));
       console.log("Negocios cargados desde Supabase:", negocios.length);
     } catch (e) {
@@ -424,6 +439,7 @@
           <div class="biz-meta">
             <span>${n.meta}</span>
             ${n.sponsor ? '<span class="badge-sponsor">PATROCINADO</span>' : ''}
+            ${n.waze ? `<a class="btn-waze" href="${n.waze}" target="_blank" rel="noopener">🧭 Cómo llegar</a>` : ''}
           </div>
         </div>
       `;
@@ -516,6 +532,7 @@
             <div class="biz-meta">
               <span>${n.meta}</span>
               ${n.sponsor ? '<span class="badge-sponsor">PATROCINADO</span>' : ''}
+              ${n.waze ? `<a class="btn-waze" href="${n.waze}" target="_blank" rel="noopener">🧭 Cómo llegar</a>` : ''}
             </div>
           </div>
         `;
