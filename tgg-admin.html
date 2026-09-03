@@ -156,13 +156,52 @@
     banner.style.display = "block";
   }
 
-  function guardarSesion(token, email) {
+  function guardarSesion(token, refreshToken, email) {
     localStorage.setItem("tgg_admin_token", token);
+    localStorage.setItem("tgg_admin_refresh", refreshToken);
     localStorage.setItem("tgg_admin_email", email);
   }
   function borrarSesion() {
     localStorage.removeItem("tgg_admin_token");
+    localStorage.removeItem("tgg_admin_refresh");
     localStorage.removeItem("tgg_admin_email");
+  }
+
+  async function refrescarToken() {
+    const refreshToken = localStorage.getItem("tgg_admin_refresh");
+    if (!refreshToken) return false;
+    try {
+      const res = await fetch(SUPABASE_URL + "/auth/v1/token?grant_type=refresh_token", {
+        method: "POST",
+        headers: { "apikey": SUPABASE_ANON_KEY, "Content-Type": "application/json" },
+        body: JSON.stringify({ refresh_token: refreshToken })
+      });
+      const data = await res.json();
+      if (!res.ok) return false;
+      guardarSesion(data.access_token, data.refresh_token, data.user.email);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  // Hace un fetch autenticado; si el token venció (401 / PGRST303 / JWT expired),
+  // intenta renovarlo una vez y reintenta la petición automáticamente.
+  async function fetchAutenticado(url, options) {
+    options.headers["Authorization"] = "Bearer " + localStorage.getItem("tgg_admin_token");
+    let res = await fetch(url, options);
+    if (res.status === 401 || res.status === 403) {
+      const renovado = await refrescarToken();
+      if (renovado) {
+        options.headers["Authorization"] = "Bearer " + localStorage.getItem("tgg_admin_token");
+        res = await fetch(url, options);
+      } else {
+        borrarSesion();
+        checkSesion();
+        alert("Tu sesión expiró y no se pudo renovar. Volvé a entrar, por favor.");
+      }
+    }
+    return res;
   }
 
   function mostrarAdmin(email) {
@@ -209,7 +248,7 @@
         loginError.style.display = "block";
         return;
       }
-      guardarSesion(data.access_token, data.user.email);
+      guardarSesion(data.access_token, data.refresh_token, data.user.email);
       mostrarAdmin(data.user.email);
     } catch (e) {
       loginError.style.color = "#FCA5A5";
@@ -245,7 +284,7 @@
         return;
       }
       if (data.access_token) {
-        guardarSesion(data.access_token, email);
+        guardarSesion(data.access_token, data.refresh_token, email);
         mostrarAdmin(email);
       } else {
         loginError.style.color = "#86EFAC";
@@ -300,13 +339,11 @@
       return;
     }
 
-    const token = localStorage.getItem("tgg_admin_token");
     try {
-      const res = await fetch(SUPABASE_URL + "/rest/v1/negocios", {
+      const res = await fetchAutenticado(SUPABASE_URL + "/rest/v1/negocios", {
         method: "POST",
         headers: {
           "apikey": SUPABASE_ANON_KEY,
-          "Authorization": "Bearer " + token,
           "Content-Type": "application/json",
           "Prefer": "return=minimal"
         },
@@ -358,10 +395,9 @@
         `;
         item.querySelector("button").addEventListener("click", async () => {
           if (!confirm(`¿Borrar "${n.nombre}"?`)) return;
-          const token = localStorage.getItem("tgg_admin_token");
-          await fetch(SUPABASE_URL + "/rest/v1/negocios?id=eq." + n.id, {
+          await fetchAutenticado(SUPABASE_URL + "/rest/v1/negocios?id=eq." + n.id, {
             method: "DELETE",
-            headers: { "apikey": SUPABASE_ANON_KEY, "Authorization": "Bearer " + token }
+            headers: { "apikey": SUPABASE_ANON_KEY }
           });
           cargarLista();
         });
@@ -374,6 +410,6 @@
 
   checkSesion();
 </script>
-<div style="text-align:center; color:#4B5563; font-size:11px; margin-top:8px;">build: v4-sin-cdn</div>
+<div style="text-align:center; color:#4B5563; font-size:11px; margin-top:8px;">build: v5-token-refresh</div>
 </body>
 </html>
