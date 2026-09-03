@@ -344,14 +344,12 @@
   </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script>
   const SUPABASE_URL = "https://ecdgpjarhxigxuooqsal.supabase.co";
   const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjZGdwamFyaHhpZ3h1b29xc2FsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgzOTA0NDIsImV4cCI6MjEwMzk2NjQ0Mn0.wn05ET7DasdJ5r3W3x_31sBPCq7KbKURWmPkEGSqP4Q";
-  const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 </script>
 <script>
-  // Datos de respaldo (se usan solo si Supabase aún no tiene la tabla/datos)
+  // Datos de respaldo (se usan solo si Supabase aún no responde)
   const negocios_fallback = [
     { nombre: "La Terraza Zona 10", cat: "Comida y bebida", color: "var(--comida)", emoji: "🍽️", meta: "Zona 10 · $$ · 4.7★", sponsor: true, zona: 10, precio: 2, compania: ["pareja", "amigos", "familia"], duracion: "2h" },
     { nombre: "Cine Fusión Miraflores", cat: "Cines", color: "var(--cines)", emoji: "🎬", meta: "Zona 11 · Estrenos hoy", zona: 11, precio: 1, compania: ["solo", "pareja", "amigos", "familia"], duracion: "2-3h" },
@@ -367,8 +365,11 @@
 
   async function cargarNegocios() {
     try {
-      const { data, error } = await supabase.from("negocios").select("*");
-      if (error || !data || data.length === 0) throw error || new Error("sin datos");
+      const res = await fetch(SUPABASE_URL + "/rest/v1/negocios?select=*", {
+        headers: { "apikey": SUPABASE_ANON_KEY, "Authorization": "Bearer " + SUPABASE_ANON_KEY }
+      });
+      const data = await res.json();
+      if (!res.ok || !data || data.length === 0) throw new Error("sin datos");
       // Mapeamos columnas de la tabla al formato que usa el render
       negocios = data.map(n => ({
         nombre: n.nombre,
@@ -384,7 +385,7 @@
       }));
       console.log("Negocios cargados desde Supabase:", negocios.length);
     } catch (e) {
-      console.warn("No se pudo leer de Supabase (¿tabla aún no creada?). Usando datos de ejemplo.", e);
+      console.warn("No se pudo leer de Supabase. Usando datos de ejemplo.", e);
       negocios = negocios_fallback;
     }
     renderLista();
