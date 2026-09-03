@@ -225,6 +225,12 @@
     align-items: center;
     justify-content: center;
     font-size: 26px;
+    overflow: hidden;
+  }
+  .biz-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
   }
   .biz-info { flex: 1; min-width: 0; }
   .biz-name { font-size: 14.5px; font-weight: 700; margin-bottom: 3px; }
@@ -377,6 +383,13 @@
 
   let negocios = [];
 
+  function renderThumb(n) {
+    if (n.imagen) {
+      return `<img src="${n.imagen}" alt="${n.nombre}" onerror="this.outerHTML='${n.emoji}';">`;
+    }
+    return n.emoji;
+  }
+
   async function cargarNegocios() {
     try {
       const res = await fetch(SUPABASE_URL + "/rest/v1/negocios?select=*", {
@@ -397,6 +410,7 @@
         compania: n.compania,
         duracion: n.duracion,
         waze: n.waze_url,
+        imagen: n.imagen_url,
       }));
       console.log("Negocios cargados desde Supabase:", negocios.length);
     } catch (e) {
@@ -432,7 +446,7 @@
       const card = document.createElement("div");
       card.className = "biz-card";
       card.innerHTML = `
-        <div class="biz-thumb" style="background:${n.color}22;">${n.emoji}</div>
+        <div class="biz-thumb" style="background:${n.color}22;">${renderThumb(n)}</div>
         <div class="biz-info">
           <div class="biz-name">${n.nombre}</div>
           <div class="biz-cat" style="background:${n.color};">${n.cat}</div>
@@ -525,7 +539,7 @@
         const card = document.createElement("div");
         card.className = "biz-card";
         card.innerHTML = `
-          <div class="biz-thumb" style="background:${n.color}22;">${n.emoji}</div>
+          <div class="biz-thumb" style="background:${n.color}22;">${renderThumb(n)}</div>
           <div class="biz-info">
             <div class="biz-name">${n.nombre}</div>
             <div class="biz-cat" style="background:${n.color};">${n.cat}</div>

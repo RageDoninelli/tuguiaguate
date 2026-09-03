@@ -124,6 +124,9 @@
     <label>Link de Waze (opcional)</label>
     <input type="text" id="f-waze" placeholder="https://waze.com/ul/...">
 
+    <label>Link de imagen (opcional)</label>
+    <input type="text" id="f-imagen" placeholder="https://... (foto del lugar)">
+
     <label>Compañía recomendada</label>
     <div class="chk-row">
       <label class="chk-opt"><input type="checkbox" value="pareja"> Pareja</label>
@@ -330,6 +333,7 @@
       emoji: document.getElementById("f-emoji").value.trim() || "📍",
       meta: document.getElementById("f-meta").value.trim(),
       waze_url: document.getElementById("f-waze").value.trim() || null,
+      imagen_url: document.getElementById("f-imagen").value.trim() || null,
       zona: Number(document.getElementById("f-zona").value) || 0,
       precio: Number(document.getElementById("f-precio").value) || 2,
       duracion: document.getElementById("f-duracion").value.trim() || "2h",
@@ -363,6 +367,7 @@
       document.getElementById("f-nombre").value = "";
       document.getElementById("f-meta").value = "";
       document.getElementById("f-waze").value = "";
+      document.getElementById("f-imagen").value = "";
       document.querySelectorAll(".chk-row input").forEach(c => c.checked = false);
       document.getElementById("f-patrocinado").checked = false;
       cargarLista();
@@ -415,6 +420,6 @@
 
   checkSesion();
 </script>
-<div style="text-align:center; color:#4B5563; font-size:11px; margin-top:8px;">build: v6-waze</div>
+<div style="text-align:center; color:#4B5563; font-size:11px; margin-top:8px;">build: v7-imagen</div>
 </body>
 </html>
