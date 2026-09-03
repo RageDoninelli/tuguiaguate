@@ -147,25 +147,8 @@
 <div style="text-align:center; color:#4B5563; font-size:11px; margin-top:24px;">build: v3-diagnostico</div>
 
 <script>
-  document.getElementById("btn-login").onclick = function () {
-    try {
-      hacerLogin();
-    } catch (e) {
-      alert("Error en botón Entrar: " + (e && e.message ? e.message : e));
-    }
-  };
-  document.getElementById("link-signup").onclick = function (e) {
-    e.preventDefault();
-    try {
-      hacerSignup();
-    } catch (err) {
-      alert("Error en botón Crear cuenta: " + (err && err.message ? err.message : err));
-    }
-  };
-</script>
-
-<script>
-  var supabaseClient = null;
+  const SUPABASE_URL = "https://ecdgpjarhxigxuooqsal.supabase.co";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjZGdwamFyaHhpZ3h1b29xc2FsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgzOTA0NDIsImV4cCI6MjEwMzk2NjQ0Mn0.wn05ET7DasdJ5r3W3x_31sBPCq7KbKURWmPkEGSqP4Q";
 
   function mostrarErrorCarga(msg) {
     const banner = document.getElementById("load-error");
@@ -173,78 +156,13 @@
     banner.style.display = "block";
   }
 
-  setTimeout(function () {
-    if (!supabaseClient) {
-      mostrarErrorCarga("Llevamos más de 8 segundos esperando la librería de Supabase (cdn.jsdelivr.net / unpkg.com) y no llegó ni con error ni con éxito. Esto es típico de una red que bloquea esos dominios en silencio. Probá: 1) cambiar de WiFi a datos móviles (o al revés), 2) desactivar VPN si usás una, 3) probar desde otra red por completo.");
-    }
-  }, 8000);
-
-  function cargarCDNAlterno() {
-    const s = document.createElement("script");
-    s.src = "https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js";
-    s.onload = iniciarApp;
-    s.onerror = function () {
-      mostrarErrorCarga("No se pudo cargar la librería de Supabase desde ningún servidor. Probá con otra red (datos móviles / wifi) o desactivá temporalmente algún bloqueador/VPN.");
-    };
-    document.head.appendChild(s);
+  function guardarSesion(token, email) {
+    localStorage.setItem("tgg_admin_token", token);
+    localStorage.setItem("tgg_admin_email", email);
   }
-
-  async function hacerLogin() {
-    const loginError = document.getElementById("login-error");
-    loginError.style.color = "#FCA5A5";
-    if (!supabaseClient) {
-      loginError.textContent = "La conexión con Supabase todavía no está lista. Esperá unos segundos y probá de nuevo (si el cartel rojo de arriba tiene un mensaje, contámelo).";
-      loginError.style.display = "block";
-      return;
-    }
-    const email = document.getElementById("login-email").value.trim();
-    const password = document.getElementById("login-pass").value;
-    if (!email || !password) {
-      loginError.textContent = "Escribí correo y contraseña.";
-      loginError.style.display = "block";
-      return;
-    }
-    loginError.textContent = "Entrando...";
-    loginError.style.color = "#9CA3AF";
-    loginError.style.display = "block";
-    const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
-    if (error) {
-      loginError.style.color = "#FCA5A5";
-      loginError.textContent = "No se pudo entrar: " + error.message;
-      loginError.style.display = "block";
-      return;
-    }
-    mostrarAdmin(data.user.email);
-  }
-
-  async function hacerSignup() {
-    const loginError = document.getElementById("login-error");
-    loginError.style.color = "#FCA5A5";
-    if (!supabaseClient) {
-      loginError.textContent = "La conexión con Supabase todavía no está lista. Esperá unos segundos y probá de nuevo (si el cartel rojo de arriba tiene un mensaje, contámelo).";
-      loginError.style.display = "block";
-      return;
-    }
-    const email = document.getElementById("login-email").value.trim();
-    const password = document.getElementById("login-pass").value;
-    if (!email || !password) {
-      loginError.textContent = "Escribí correo y contraseña arriba, luego click en 'Crear cuenta admin'.";
-      loginError.style.display = "block";
-      return;
-    }
-    loginError.textContent = "Creando cuenta...";
-    loginError.style.color = "#9CA3AF";
-    loginError.style.display = "block";
-    const { data, error } = await supabaseClient.auth.signUp({ email, password });
-    if (error) {
-      loginError.style.color = "#FCA5A5";
-      loginError.textContent = "Error al crear cuenta: " + error.message;
-      loginError.style.display = "block";
-      return;
-    }
-    loginError.style.color = "#86EFAC";
-    loginError.textContent = "Cuenta creada. Si pide confirmación revisa tu correo, si no, ya podés entrar con 'Entrar'.";
-    loginError.style.display = "block";
+  function borrarSesion() {
+    localStorage.removeItem("tgg_admin_token");
+    localStorage.removeItem("tgg_admin_email");
   }
 
   function mostrarAdmin(email) {
@@ -254,32 +172,102 @@
     cargarLista();
   }
 
-  async function checkSesion() {
-    if (!supabaseClient) return;
-    const { data: { session } } = await supabaseClient.auth.getSession();
-    if (session) {
-      mostrarAdmin(session.user.email);
+  function checkSesion() {
+    const token = localStorage.getItem("tgg_admin_token");
+    const email = localStorage.getItem("tgg_admin_email");
+    if (token && email) {
+      mostrarAdmin(email);
     } else {
       document.getElementById("login-view").style.display = "block";
       document.getElementById("admin-view").style.display = "none";
     }
   }
-</script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js" onload="iniciarApp()" onerror="cargarCDNAlterno()"></script>
-<script>
-function iniciarApp() {
-try {
-  const SUPABASE_URL = "https://ecdgpjarhxigxuooqsal.supabase.co";
-  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjZGdwamFyaHhpZ3h1b29xc2FsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgzOTA0NDIsImV4cCI6MjEwMzk2NjQ0Mn0.wn05ET7DasdJ5r3W3x_31sBPCq7KbKURWmPkEGSqP4Q";
-  supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-  const supabase = supabaseClient;
 
-  const loginView = document.getElementById("login-view");
-  const adminView = document.getElementById("admin-view");
-  const loginError = document.getElementById("login-error");
+  async function hacerLogin() {
+    const loginError = document.getElementById("login-error");
+    const email = document.getElementById("login-email").value.trim();
+    const password = document.getElementById("login-pass").value;
+    if (!email || !password) {
+      loginError.style.color = "#FCA5A5";
+      loginError.textContent = "Escribí correo y contraseña.";
+      loginError.style.display = "block";
+      return;
+    }
+    loginError.style.color = "#9CA3AF";
+    loginError.textContent = "Entrando...";
+    loginError.style.display = "block";
+    try {
+      const res = await fetch(SUPABASE_URL + "/auth/v1/token?grant_type=password", {
+        method: "POST",
+        headers: { "apikey": SUPABASE_ANON_KEY, "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password })
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        loginError.style.color = "#FCA5A5";
+        loginError.textContent = "No se pudo entrar: " + (data.error_description || data.msg || res.status);
+        loginError.style.display = "block";
+        return;
+      }
+      guardarSesion(data.access_token, data.user.email);
+      mostrarAdmin(data.user.email);
+    } catch (e) {
+      loginError.style.color = "#FCA5A5";
+      loginError.textContent = "Error de red al entrar: " + e.message;
+      loginError.style.display = "block";
+    }
+  }
 
-  document.getElementById("btn-logout").addEventListener("click", async () => {
-    await supabase.auth.signOut();
+  async function hacerSignup() {
+    const loginError = document.getElementById("login-error");
+    const email = document.getElementById("login-email").value.trim();
+    const password = document.getElementById("login-pass").value;
+    if (!email || !password) {
+      loginError.style.color = "#FCA5A5";
+      loginError.textContent = "Escribí correo y contraseña arriba, luego click en 'Crear cuenta admin'.";
+      loginError.style.display = "block";
+      return;
+    }
+    loginError.style.color = "#9CA3AF";
+    loginError.textContent = "Creando cuenta...";
+    loginError.style.display = "block";
+    try {
+      const res = await fetch(SUPABASE_URL + "/auth/v1/signup", {
+        method: "POST",
+        headers: { "apikey": SUPABASE_ANON_KEY, "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password })
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        loginError.style.color = "#FCA5A5";
+        loginError.textContent = "Error al crear cuenta: " + (data.msg || data.error_description || res.status);
+        loginError.style.display = "block";
+        return;
+      }
+      if (data.access_token) {
+        guardarSesion(data.access_token, email);
+        mostrarAdmin(email);
+      } else {
+        loginError.style.color = "#86EFAC";
+        loginError.textContent = "Cuenta creada. Si pide confirmación revisa tu correo, si no, ya podés entrar con 'Entrar'.";
+        loginError.style.display = "block";
+      }
+    } catch (e) {
+      loginError.style.color = "#FCA5A5";
+      loginError.textContent = "Error de red al crear cuenta: " + e.message;
+      loginError.style.display = "block";
+    }
+  }
+
+  document.getElementById("btn-login").onclick = function () {
+    try { hacerLogin(); } catch (e) { alert("Error en botón Entrar: " + (e && e.message ? e.message : e)); }
+  };
+  document.getElementById("link-signup").onclick = function (e) {
+    e.preventDefault();
+    try { hacerSignup(); } catch (err) { alert("Error en botón Crear cuenta: " + (err && err.message ? err.message : err)); }
+  };
+  document.getElementById("btn-logout").addEventListener("click", () => {
+    borrarSesion();
     checkSesion();
   });
 
@@ -290,8 +278,7 @@ try {
     formOk.style.display = "none";
 
     const categoria = document.getElementById("f-categoria").value;
-    const colorMap = { "Diversión":"div", "Cines":"cines", "Deportes":"dep", "Comida y bebida":"comida", "Hotel y Spa":"hotel", "Fiestas":"fiestas", "Conciertos":"conciertos", "Teatro":"teatro" };
-
+    const colorMap = { "Diversión": "div", "Cines": "cines", "Deportes": "dep", "Comida y bebida": "comida", "Hotel y Spa": "hotel", "Fiestas": "fiestas", "Conciertos": "conciertos", "Teatro": "teatro" };
     const compania = Array.from(document.querySelectorAll(".chk-row input:checked")).map(c => c.value);
 
     const nuevo = {
@@ -303,7 +290,7 @@ try {
       zona: Number(document.getElementById("f-zona").value) || 0,
       precio: Number(document.getElementById("f-precio").value) || 2,
       duracion: document.getElementById("f-duracion").value.trim() || "2h",
-      compania: compania.length ? compania : ["pareja","amigos","familia","solo"],
+      compania: compania.length ? compania : ["pareja", "amigos", "familia", "solo"],
       patrocinado: document.getElementById("f-patrocinado").checked,
     };
 
@@ -313,57 +300,80 @@ try {
       return;
     }
 
-    const { error } = await supabase.from("negocios").insert(nuevo);
-    if (error) {
-      formError.textContent = "No se pudo guardar: " + error.message;
+    const token = localStorage.getItem("tgg_admin_token");
+    try {
+      const res = await fetch(SUPABASE_URL + "/rest/v1/negocios", {
+        method: "POST",
+        headers: {
+          "apikey": SUPABASE_ANON_KEY,
+          "Authorization": "Bearer " + token,
+          "Content-Type": "application/json",
+          "Prefer": "return=minimal"
+        },
+        body: JSON.stringify(nuevo)
+      });
+      if (!res.ok) {
+        const errText = await res.text();
+        formError.textContent = "No se pudo guardar: " + errText;
+        formError.style.display = "block";
+        return;
+      }
+      formOk.style.display = "block";
+      document.getElementById("f-nombre").value = "";
+      document.getElementById("f-meta").value = "";
+      document.querySelectorAll(".chk-row input").forEach(c => c.checked = false);
+      document.getElementById("f-patrocinado").checked = false;
+      cargarLista();
+    } catch (e) {
+      formError.textContent = "Error de red al guardar: " + e.message;
       formError.style.display = "block";
-      return;
     }
-    formOk.style.display = "block";
-    document.getElementById("f-nombre").value = "";
-    document.getElementById("f-meta").value = "";
-    document.querySelectorAll(".chk-row input").forEach(c => c.checked = false);
-    document.getElementById("f-patrocinado").checked = false;
-    cargarLista();
   });
 
   async function cargarLista() {
     const cont = document.getElementById("lista-negocios");
-    const { data, error } = await supabase.from("negocios").select("*").order("creado_en", { ascending: false });
-    if (error) {
-      cont.innerHTML = `<div class="sub">Error al cargar: ${error.message}</div>`;
-      return;
-    }
-    if (!data || data.length === 0) {
-      cont.innerHTML = `<div class="sub">Todavía no hay negocios.</div>`;
-      return;
-    }
-    cont.innerHTML = "";
-    data.forEach(n => {
-      const item = document.createElement("div");
-      item.className = "neg-item";
-      item.innerHTML = `
-        <div>
-          <div class="neg-name">${n.emoji} ${n.nombre} ${n.patrocinado ? '⭐' : ''}</div>
-          <div class="neg-cat">${n.categoria} · Zona ${n.zona}</div>
-        </div>
-        <button class="btn-danger" data-id="${n.id}">Borrar</button>
-      `;
-      item.querySelector("button").addEventListener("click", async () => {
-        if (!confirm(`¿Borrar "${n.nombre}"?`)) return;
-        await supabase.from("negocios").delete().eq("id", n.id);
-        cargarLista();
+    try {
+      const res = await fetch(SUPABASE_URL + "/rest/v1/negocios?select=*&order=creado_en.desc", {
+        headers: { "apikey": SUPABASE_ANON_KEY, "Authorization": "Bearer " + SUPABASE_ANON_KEY }
       });
-      cont.appendChild(item);
-    });
+      const data = await res.json();
+      if (!res.ok) {
+        cont.innerHTML = `<div class="sub">Error al cargar: ${JSON.stringify(data)}</div>`;
+        return;
+      }
+      if (!data || data.length === 0) {
+        cont.innerHTML = `<div class="sub">Todavía no hay negocios.</div>`;
+        return;
+      }
+      cont.innerHTML = "";
+      data.forEach(n => {
+        const item = document.createElement("div");
+        item.className = "neg-item";
+        item.innerHTML = `
+          <div>
+            <div class="neg-name">${n.emoji} ${n.nombre} ${n.patrocinado ? "⭐" : ""}</div>
+            <div class="neg-cat">${n.categoria} · Zona ${n.zona}</div>
+          </div>
+          <button class="btn-danger" data-id="${n.id}">Borrar</button>
+        `;
+        item.querySelector("button").addEventListener("click", async () => {
+          if (!confirm(`¿Borrar "${n.nombre}"?`)) return;
+          const token = localStorage.getItem("tgg_admin_token");
+          await fetch(SUPABASE_URL + "/rest/v1/negocios?id=eq." + n.id, {
+            method: "DELETE",
+            headers: { "apikey": SUPABASE_ANON_KEY, "Authorization": "Bearer " + token }
+          });
+          cargarLista();
+        });
+        cont.appendChild(item);
+      });
+    } catch (e) {
+      cont.innerHTML = `<div class="sub">Error de red: ${e.message}</div>`;
+    }
   }
 
   checkSesion();
-
-} catch (err) {
-  mostrarErrorCarga("Error al iniciar la app: " + (err && err.message ? err.message : err));
-}
-}
 </script>
+<div style="text-align:center; color:#4B5563; font-size:11px; margin-top:8px;">build: v4-sin-cdn</div>
 </body>
 </html>
