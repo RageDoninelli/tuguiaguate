@@ -144,7 +144,29 @@
   </div>
 </div>
 
+<div style="text-align:center; color:#4B5563; font-size:11px; margin-top:24px;">build: v3-diagnostico</div>
+
 <script>
+  document.getElementById("btn-login").onclick = function () {
+    try {
+      hacerLogin();
+    } catch (e) {
+      alert("Error en botón Entrar: " + (e && e.message ? e.message : e));
+    }
+  };
+  document.getElementById("link-signup").onclick = function (e) {
+    e.preventDefault();
+    try {
+      hacerSignup();
+    } catch (err) {
+      alert("Error en botón Crear cuenta: " + (err && err.message ? err.message : err));
+    }
+  };
+</script>
+
+<script>
+  var supabaseClient = null;
+
   function mostrarErrorCarga(msg) {
     const banner = document.getElementById("load-error");
     banner.textContent = "⚠️ " + msg;
@@ -160,51 +182,43 @@
     };
     document.head.appendChild(s);
   }
-</script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js" onload="iniciarApp()" onerror="cargarCDNAlterno()"></script>
-<script>
-function iniciarApp() {
-try {
-  const SUPABASE_URL = "https://ecdgpjarhxigxuooqsal.supabase.co";
-  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjZGdwamFyaHhpZ3h1b29xc2FsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgzOTA0NDIsImV4cCI6MjEwMzk2NjQ0Mn0.wn05ET7DasdJ5r3W3x_31sBPCq7KbKURWmPkEGSqP4Q";
-  const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  const loginView = document.getElementById("login-view");
-  const adminView = document.getElementById("admin-view");
-  const loginError = document.getElementById("login-error");
-
-  async function checkSesion() {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (session) {
-      mostrarAdmin(session.user.email);
-    } else {
-      loginView.style.display = "block";
-      adminView.style.display = "none";
+  async function hacerLogin() {
+    const loginError = document.getElementById("login-error");
+    loginError.style.color = "#FCA5A5";
+    if (!supabaseClient) {
+      loginError.textContent = "La conexión con Supabase todavía no está lista. Esperá unos segundos y probá de nuevo (si el cartel rojo de arriba tiene un mensaje, contámelo).";
+      loginError.style.display = "block";
+      return;
     }
-  }
-
-  function mostrarAdmin(email) {
-    loginView.style.display = "none";
-    adminView.style.display = "block";
-    document.getElementById("user-email").textContent = email;
-    cargarLista();
-  }
-
-  document.getElementById("btn-login").addEventListener("click", async () => {
-    loginError.style.display = "none";
     const email = document.getElementById("login-email").value.trim();
     const password = document.getElementById("login-pass").value;
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    if (!email || !password) {
+      loginError.textContent = "Escribí correo y contraseña.";
+      loginError.style.display = "block";
+      return;
+    }
+    loginError.textContent = "Entrando...";
+    loginError.style.color = "#9CA3AF";
+    loginError.style.display = "block";
+    const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
     if (error) {
+      loginError.style.color = "#FCA5A5";
       loginError.textContent = "No se pudo entrar: " + error.message;
       loginError.style.display = "block";
       return;
     }
     mostrarAdmin(data.user.email);
-  });
+  }
 
-  document.getElementById("link-signup").addEventListener("click", async (e) => {
-    e.preventDefault();
+  async function hacerSignup() {
+    const loginError = document.getElementById("login-error");
+    loginError.style.color = "#FCA5A5";
+    if (!supabaseClient) {
+      loginError.textContent = "La conexión con Supabase todavía no está lista. Esperá unos segundos y probá de nuevo (si el cartel rojo de arriba tiene un mensaje, contámelo).";
+      loginError.style.display = "block";
+      return;
+    }
     const email = document.getElementById("login-email").value.trim();
     const password = document.getElementById("login-pass").value;
     if (!email || !password) {
@@ -212,8 +226,12 @@ try {
       loginError.style.display = "block";
       return;
     }
-    const { data, error } = await supabase.auth.signUp({ email, password });
+    loginError.textContent = "Creando cuenta...";
+    loginError.style.color = "#9CA3AF";
+    loginError.style.display = "block";
+    const { data, error } = await supabaseClient.auth.signUp({ email, password });
     if (error) {
+      loginError.style.color = "#FCA5A5";
       loginError.textContent = "Error al crear cuenta: " + error.message;
       loginError.style.display = "block";
       return;
@@ -221,7 +239,38 @@ try {
     loginError.style.color = "#86EFAC";
     loginError.textContent = "Cuenta creada. Si pide confirmación revisa tu correo, si no, ya podés entrar con 'Entrar'.";
     loginError.style.display = "block";
-  });
+  }
+
+  function mostrarAdmin(email) {
+    document.getElementById("login-view").style.display = "none";
+    document.getElementById("admin-view").style.display = "block";
+    document.getElementById("user-email").textContent = email;
+    cargarLista();
+  }
+
+  async function checkSesion() {
+    if (!supabaseClient) return;
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    if (session) {
+      mostrarAdmin(session.user.email);
+    } else {
+      document.getElementById("login-view").style.display = "block";
+      document.getElementById("admin-view").style.display = "none";
+    }
+  }
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js" onload="iniciarApp()" onerror="cargarCDNAlterno()"></script>
+<script>
+function iniciarApp() {
+try {
+  const SUPABASE_URL = "https://ecdgpjarhxigxuooqsal.supabase.co";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjZGdwamFyaHhpZ3h1b29xc2FsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgzOTA0NDIsImV4cCI6MjEwMzk2NjQ0Mn0.wn05ET7DasdJ5r3W3x_31sBPCq7KbKURWmPkEGSqP4Q";
+  supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  const supabase = supabaseClient;
+
+  const loginView = document.getElementById("login-view");
+  const adminView = document.getElementById("admin-view");
+  const loginError = document.getElementById("login-error");
 
   document.getElementById("btn-logout").addEventListener("click", async () => {
     await supabase.auth.signOut();
