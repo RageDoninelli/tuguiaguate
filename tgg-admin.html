@@ -54,6 +54,8 @@
 </head>
 <body>
 
+<div id="load-error" style="display:none; background:#DC2626; color:white; padding:12px 14px; border-radius:10px; margin-bottom:16px; font-size:13px; max-width:340px; margin-left:auto; margin-right:auto;"></div>
+
 <div id="login-view">
   <h1>🔐 TGG Admin</h1>
   <div class="sub">Acceso solo para administradores</div>
@@ -142,8 +144,27 @@
   </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script>
+  function mostrarErrorCarga(msg) {
+    const banner = document.getElementById("load-error");
+    banner.textContent = "⚠️ " + msg;
+    banner.style.display = "block";
+  }
+
+  function cargarCDNAlterno() {
+    const s = document.createElement("script");
+    s.src = "https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js";
+    s.onload = iniciarApp;
+    s.onerror = function () {
+      mostrarErrorCarga("No se pudo cargar la librería de Supabase desde ningún servidor. Probá con otra red (datos móviles / wifi) o desactivá temporalmente algún bloqueador/VPN.");
+    };
+    document.head.appendChild(s);
+  }
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js" onload="iniciarApp()" onerror="cargarCDNAlterno()"></script>
+<script>
+function iniciarApp() {
+try {
   const SUPABASE_URL = "https://ecdgpjarhxigxuooqsal.supabase.co";
   const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjZGdwamFyaHhpZ3h1b29xc2FsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgzOTA0NDIsImV4cCI6MjEwMzk2NjQ0Mn0.wn05ET7DasdJ5r3W3x_31sBPCq7KbKURWmPkEGSqP4Q";
   const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -283,6 +304,11 @@
   }
 
   checkSesion();
+
+} catch (err) {
+  mostrarErrorCarga("Error al iniciar la app: " + (err && err.message ? err.message : err));
+}
+}
 </script>
 </body>
 </html>
