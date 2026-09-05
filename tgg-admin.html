@@ -37,6 +37,9 @@
   }
   .btn-primary { background: linear-gradient(135deg, #7C3AED, #DC2626); color: white; width: 100%; margin-top: 16px; }
   .btn-danger { background: #DC262622; color: #FCA5A5; border: 1px solid #DC262655; }
+  .btn-editar { background: #7C3AED22; color: #C4B5FD; border: 1px solid #7C3AED55; }
+  .neg-actions { display: flex; gap: 6px; flex-shrink: 0; }
+  .neg-actions button { padding: 7px 12px; font-size: 12px; }
   .btn-logout { background: var(--card); color: var(--muted); border: 1px solid #2A2E37; }
 
   #login-view { max-width: 340px; margin: 60px auto 0; }
@@ -80,7 +83,10 @@
   </header>
 
   <div class="card">
-    <div style="font-weight:700; font-size:14px; margin-bottom:4px;">➕ Agregar negocio</div>
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+      <div style="font-weight:700; font-size:14px;" id="form-titulo">➕ Agregar negocio</div>
+      <a href="#" id="link-cancelar-edicion" style="display:none; color:#F87171; font-size:12px; font-weight:600;">Cancelar edición</a>
+    </div>
     <label>Nombre</label>
     <input type="text" id="f-nombre" placeholder="Ej: Café La Esquina">
 
@@ -316,6 +322,51 @@
     checkSesion();
   });
 
+  let editandoId = null;
+
+  function resetearFormulario() {
+    editandoId = null;
+    document.getElementById("form-titulo").textContent = "➕ Agregar negocio";
+    document.getElementById("btn-guardar").textContent = "Guardar negocio";
+    document.getElementById("link-cancelar-edicion").style.display = "none";
+    document.getElementById("f-nombre").value = "";
+    document.getElementById("f-categoria").value = "Comida y bebida";
+    document.getElementById("f-emoji").value = "";
+    document.getElementById("f-zona").value = "";
+    document.getElementById("f-precio").value = "2";
+    document.getElementById("f-duracion").value = "";
+    document.getElementById("f-meta").value = "";
+    document.getElementById("f-waze").value = "";
+    document.getElementById("f-imagen").value = "";
+    document.querySelectorAll(".chk-row input").forEach(c => c.checked = false);
+    document.getElementById("f-patrocinado").checked = false;
+  }
+
+  function cargarNegocioEnFormulario(n) {
+    editandoId = n.id;
+    document.getElementById("form-titulo").textContent = "✏️ Editando: " + n.nombre;
+    document.getElementById("btn-guardar").textContent = "Actualizar negocio";
+    document.getElementById("link-cancelar-edicion").style.display = "inline";
+    document.getElementById("f-nombre").value = n.nombre || "";
+    document.getElementById("f-categoria").value = n.categoria || "Comida y bebida";
+    document.getElementById("f-emoji").value = n.emoji || "";
+    document.getElementById("f-zona").value = n.zona ?? "";
+    document.getElementById("f-precio").value = n.precio || 2;
+    document.getElementById("f-duracion").value = n.duracion || "";
+    document.getElementById("f-meta").value = n.meta || "";
+    document.getElementById("f-waze").value = n.waze_url || "";
+    document.getElementById("f-imagen").value = n.imagen_url || "";
+    const companiaSet = new Set(n.compania || []);
+    document.querySelectorAll(".chk-row input").forEach(c => c.checked = companiaSet.has(c.value));
+    document.getElementById("f-patrocinado").checked = !!n.patrocinado;
+    document.querySelector(".card").scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  document.getElementById("link-cancelar-edicion").addEventListener("click", (e) => {
+    e.preventDefault();
+    resetearFormulario();
+  });
+
   document.getElementById("btn-guardar").addEventListener("click", async () => {
     const formError = document.getElementById("form-error");
     const formOk = document.getElementById("form-ok");
@@ -348,8 +399,12 @@
     }
 
     try {
-      const res = await fetchAutenticado(SUPABASE_URL + "/rest/v1/negocios", {
-        method: "POST",
+      const esEdicion = !!editandoId;
+      const url = esEdicion
+        ? SUPABASE_URL + "/rest/v1/negocios?id=eq." + editandoId
+        : SUPABASE_URL + "/rest/v1/negocios";
+      const res = await fetchAutenticado(url, {
+        method: esEdicion ? "PATCH" : "POST",
         headers: {
           "apikey": SUPABASE_ANON_KEY,
           "Content-Type": "application/json",
@@ -363,13 +418,9 @@
         formError.style.display = "block";
         return;
       }
+      formOk.textContent = esEdicion ? "Negocio actualizado ✅" : "Negocio guardado ✅";
       formOk.style.display = "block";
-      document.getElementById("f-nombre").value = "";
-      document.getElementById("f-meta").value = "";
-      document.getElementById("f-waze").value = "";
-      document.getElementById("f-imagen").value = "";
-      document.querySelectorAll(".chk-row input").forEach(c => c.checked = false);
-      document.getElementById("f-patrocinado").checked = false;
+      resetearFormulario();
       cargarLista();
     } catch (e) {
       formError.textContent = "Error de red al guardar: " + e.message;
@@ -401,9 +452,15 @@
             <div class="neg-name">${n.emoji} ${n.nombre} ${n.patrocinado ? "⭐" : ""} ${n.waze_url ? "🧭" : ""}</div>
             <div class="neg-cat">${n.categoria} · Zona ${n.zona}</div>
           </div>
-          <button class="btn-danger" data-id="${n.id}">Borrar</button>
+          <div class="neg-actions">
+            <button class="btn-editar" data-id="${n.id}">Editar</button>
+            <button class="btn-danger" data-id="${n.id}">Borrar</button>
+          </div>
         `;
-        item.querySelector("button").addEventListener("click", async () => {
+        item.querySelector(".btn-editar").addEventListener("click", () => {
+          cargarNegocioEnFormulario(n);
+        });
+        item.querySelector(".btn-danger").addEventListener("click", async () => {
           if (!confirm(`¿Borrar "${n.nombre}"?`)) return;
           await fetchAutenticado(SUPABASE_URL + "/rest/v1/negocios?id=eq." + n.id, {
             method: "DELETE",
@@ -420,6 +477,6 @@
 
   checkSesion();
 </script>
-<div style="text-align:center; color:#4B5563; font-size:11px; margin-top:8px;">build: v7-imagen</div>
+<div style="text-align:center; color:#4B5563; font-size:11px; margin-top:8px;">build: v8-editar</div>
 </body>
 </html>
