@@ -6,14 +6,15 @@
 <title>TuGuiaGuate</title>
 <style>
   :root {
-    --div: #7C3AED;
-    --cines: #0EA5E9;
-    --dep: #14B8A6;
-    --comida: #22C55E;
-    --hotel: #4ADE80;
-    --fiestas: #F97316;
-    --conciertos: #C2410C;
-    --teatro: #DC2626;
+    --div: #9B59B6;
+    --cines: #4FB3E8;
+    --dep: #26C6A5;
+    --comida: #4CAF50;
+    --hotel: #8BC34A;
+    --fiestas: #FF9800;
+    --conciertos: #E67E22;
+    --teatro: #E74C3C;
+    --logo-blue: #1B5FD9;
     --bg: #0F1115;
     --card: #1A1D24;
     --text: #F5F5F7;
@@ -39,25 +40,17 @@
   .logo-row {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 9px;
     margin-bottom: 16px;
   }
   .logo-bubble {
-    width: 34px;
-    height: 34px;
-    background: #0B1E4D;
-    border-radius: 8px 8px 8px 2px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-weight: 700;
-    font-size: 18px;
+    width: 36px;
+    height: 36px;
     flex-shrink: 0;
   }
-  .logo-text { font-size: 17px; font-weight: 600; }
-  .logo-text .gray { color: var(--muted); }
-  .logo-text .blue { color: #3B82F6; }
+  .logo-text { font-size: 18px; font-weight: 700; }
+  .logo-text .gray { color: var(--muted); font-weight: 500; }
+  .logo-text .blue { color: var(--logo-blue); }
 
   .search-bar {
     display: flex;
@@ -191,6 +184,73 @@
   .resultado-box { margin-top: 20px; border-top: 1px solid #22252c; padding-top: 18px; }
   .resultado-box .section-title { margin-bottom: 10px; }
 
+  .biz-card { cursor: pointer; }
+  .biz-card:active { opacity: 0.85; }
+
+  .detalle-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 110;
+    align-items: flex-end;
+    justify-content: center;
+  }
+  .detalle-overlay.open { display: flex; }
+  .detalle-sheet {
+    background: var(--bg);
+    width: 100%;
+    max-width: 480px;
+    border-radius: 20px 20px 0 0;
+    max-height: 92vh;
+    overflow-y: auto;
+    animation: slideUp 0.22s ease-out;
+  }
+  .detalle-img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    display: block;
+  }
+  .detalle-img-fallback {
+    width: 100%;
+    height: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 64px;
+  }
+  .detalle-body { padding: 18px; }
+  .detalle-close {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: rgba(0,0,0,0.55);
+    border: none;
+    color: white;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    font-size: 16px;
+    cursor: pointer;
+  }
+  .detalle-nombre { font-size: 19px; font-weight: 800; margin-bottom: 6px; }
+  .detalle-meta-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 14px; }
+  .detalle-desc { font-size: 13.5px; color: #D1D5DB; line-height: 1.5; margin-bottom: 18px; }
+  .detalle-actions { display: flex; gap: 10px; }
+  .detalle-actions a, .detalle-actions button {
+    flex: 1;
+    text-align: center;
+    padding: 12px;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 13.5px;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+  }
+  .btn-waze-grande { background: #38BDF822; color: #38BDF8; border: 1px solid #38BDF855 !important; }
+
   section { padding: 0 16px; margin-bottom: 26px; }
   .section-title {
     font-size: 15px;
@@ -272,7 +332,10 @@
 
 <header>
   <div class="logo-row">
-    <div class="logo-bubble">g</div>
+    <svg class="logo-bubble" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+      <path d="M50 5 C25 5 5 23 5 45 C5 63 17 78 35 84 L35 95 L50 82 C74 80 95 64 95 45 C95 23 75 5 50 5 Z" fill="var(--logo-blue)"/>
+      <text x="50" y="60" font-family="Arial, sans-serif" font-size="52" font-weight="700" fill="white" text-anchor="middle">g</text>
+    </svg>
     <div class="logo-text"><span class="gray">tuguiaguate</span><span class="blue">.com</span></div>
   </div>
   <div class="search-bar">
@@ -291,14 +354,14 @@
 
 <div class="cat-scroll">
   <div class="cat-chip active" data-cat="Todos" style="background:#2A2E37;">Todos</div>
-  <div class="cat-chip" data-cat="Diversión" style="background: var(--div);">Diversión</div>
-  <div class="cat-chip" data-cat="Cines" style="background: var(--cines);">Cines</div>
-  <div class="cat-chip" data-cat="Deportes" style="background: var(--dep);">Deportes</div>
-  <div class="cat-chip" data-cat="Comida y bebida" style="background: var(--comida);">Comida y bebida</div>
-  <div class="cat-chip" data-cat="Hotel y Spa" style="background: var(--hotel); color: #0F1115;">Hotel y Spa</div>
-  <div class="cat-chip" data-cat="Fiestas" style="background: var(--fiestas);">Fiestas</div>
-  <div class="cat-chip" data-cat="Conciertos" style="background: var(--conciertos);">Conciertos</div>
-  <div class="cat-chip" data-cat="Teatro" style="background: var(--teatro);">Teatro</div>
+  <div class="cat-chip" data-cat="Diversión" style="background: var(--div);">🎉 Diversión</div>
+  <div class="cat-chip" data-cat="Cines" style="background: var(--cines);">🎬 Cines</div>
+  <div class="cat-chip" data-cat="Deportes" style="background: var(--dep);">⚽ Deportes</div>
+  <div class="cat-chip" data-cat="Comida y bebida" style="background: var(--comida);">🍕 Comida y bebida</div>
+  <div class="cat-chip" data-cat="Hotel y Spa" style="background: var(--hotel); color: #0F1115;">🧖 Hotel y Spa</div>
+  <div class="cat-chip" data-cat="Fiestas" style="background: var(--fiestas);">🍸 Fiestas</div>
+  <div class="cat-chip" data-cat="Conciertos" style="background: var(--conciertos);">🎵 Conciertos</div>
+  <div class="cat-chip" data-cat="Teatro" style="background: var(--teatro);">⭐ Teatro</div>
 </div>
 
 <section>
@@ -364,6 +427,19 @@
   </div>
 </div>
 
+<div class="detalle-overlay" id="detalle-overlay">
+  <div class="detalle-sheet" style="position:relative;">
+    <button class="detalle-close" id="detalle-close">✕</button>
+    <div id="detalle-img-wrap"></div>
+    <div class="detalle-body">
+      <div class="detalle-nombre" id="detalle-nombre"></div>
+      <div class="detalle-meta-row" id="detalle-meta-row"></div>
+      <div class="detalle-desc" id="detalle-desc"></div>
+      <div class="detalle-actions" id="detalle-actions"></div>
+    </div>
+  </div>
+</div>
+
 <script>
   const SUPABASE_URL = "https://ecdgpjarhxigxuooqsal.supabase.co";
   const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVjZGdwamFyaHhpZ3h1b29xc2FsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgzOTA0NDIsImV4cCI6MjEwMzk2NjQ0Mn0.wn05ET7DasdJ5r3W3x_31sBPCq7KbKURWmPkEGSqP4Q";
@@ -411,6 +487,7 @@
         duracion: n.duracion,
         waze: n.waze_url,
         imagen: n.imagen_url,
+        descripcion: n.descripcion,
       }));
       console.log("Negocios cargados desde Supabase:", negocios.length);
     } catch (e) {
@@ -453,10 +530,11 @@
           <div class="biz-meta">
             <span>${n.meta}</span>
             ${n.sponsor ? '<span class="badge-sponsor">PATROCINADO</span>' : ''}
-            ${n.waze ? `<a class="btn-waze" href="${n.waze}" target="_blank" rel="noopener">🧭 Cómo llegar</a>` : ''}
+            ${n.waze ? `<a class="btn-waze" href="${n.waze}" target="_blank" rel="noopener" onclick="event.stopPropagation();">🧭 Cómo llegar</a>` : ''}
           </div>
         </div>
       `;
+      card.addEventListener("click", () => abrirDetalle(n));
       list.appendChild(card);
     });
   }
@@ -483,6 +561,35 @@
   const btnRecomendar = document.getElementById("btn-recomendar");
   const resultadoBox = document.getElementById("resultado-box");
   const resultadoList = document.getElementById("resultado-list");
+
+  // ---- Modal de detalle de negocio ----
+  const detalleOverlay = document.getElementById("detalle-overlay");
+
+  function abrirDetalle(n) {
+    const imgWrap = document.getElementById("detalle-img-wrap");
+    imgWrap.innerHTML = n.imagen
+      ? `<img class="detalle-img" src="${n.imagen}" alt="${n.nombre}" onerror="this.outerHTML='<div class=&quot;detalle-img-fallback&quot; style=&quot;background:${n.color}22;&quot;>${n.emoji}</div>';">`
+      : `<div class="detalle-img-fallback" style="background:${n.color}22;">${n.emoji}</div>`;
+
+    document.getElementById("detalle-nombre").textContent = n.nombre;
+    document.getElementById("detalle-meta-row").innerHTML = `
+      <div class="biz-cat" style="background:${n.color};">${n.cat}</div>
+      <span style="font-size:12.5px; color:var(--muted);">${n.meta}</span>
+      ${n.sponsor ? '<span class="badge-sponsor">PATROCINADO</span>' : ''}
+    `;
+    document.getElementById("detalle-desc").textContent = n.descripcion || "Todavía no hay una reseña para este lugar.";
+
+    const acciones = document.getElementById("detalle-actions");
+    acciones.innerHTML = n.waze
+      ? `<a class="btn-waze-grande" href="${n.waze}" target="_blank" rel="noopener">🧭 Cómo llegar</a>`
+      : "";
+
+    detalleOverlay.classList.add("open");
+  }
+  function cerrarDetalle() { detalleOverlay.classList.remove("open"); }
+
+  document.getElementById("detalle-close").addEventListener("click", cerrarDetalle);
+  detalleOverlay.addEventListener("click", (e) => { if (e.target === detalleOverlay) cerrarDetalle(); });
 
   const seleccion = { zona: "cualquiera", precio: "cualquiera", compania: "pareja", tiempo: "medio" };
 
@@ -546,10 +653,11 @@
             <div class="biz-meta">
               <span>${n.meta}</span>
               ${n.sponsor ? '<span class="badge-sponsor">PATROCINADO</span>' : ''}
-              ${n.waze ? `<a class="btn-waze" href="${n.waze}" target="_blank" rel="noopener">🧭 Cómo llegar</a>` : ''}
+              ${n.waze ? `<a class="btn-waze" href="${n.waze}" target="_blank" rel="noopener" onclick="event.stopPropagation();">🧭 Cómo llegar</a>` : ''}
             </div>
           </div>
         `;
+        card.addEventListener("click", () => abrirDetalle(n));
         resultadoList.appendChild(card);
       });
     }
