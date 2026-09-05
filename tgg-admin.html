@@ -4,6 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>TGG Admin</title>
+<meta name="theme-color" content="#0F1115">
+<link rel="manifest" href="manifest-admin.json">
+<link rel="icon" href="icons/icon-admin-192.png" type="image/png">
+<link rel="apple-touch-icon" href="icons/icon-admin-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="TGG Admin">
 <style>
   :root {
     --div: #7C3AED; --cines: #0EA5E9; --dep: #14B8A6; --comida: #22C55E;
@@ -519,6 +526,13 @@
 
   checkSesion();
 </script>
-<div style="text-align:center; color:#4B5563; font-size:11px; margin-top:8px;">build: v10-subida-fotos</div>
+<div style="text-align:center; color:#4B5563; font-size:11px; margin-top:8px;">build: v11-instalable</div>
+<script>
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("sw.js").catch(() => {});
+    });
+  }
+</script>
 </body>
 </html>
