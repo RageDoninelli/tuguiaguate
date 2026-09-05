@@ -4,7 +4,7 @@
   "short_name": "TGG",
   "description": "¿Qué hacemos hoy? Descubrí actividades, lugares y eventos en Guatemala.",
   "start_url": "./index.html",
-  "scope": "./",
+  "scope": "./index.html",
   "display": "standalone",
   "background_color": "#0F1115",
   "theme_color": "#1B5FD9",
