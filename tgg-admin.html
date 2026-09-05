@@ -27,6 +27,7 @@
     padding: 10px 12px; color: var(--text); font-size: 14px; outline: none;
   }
   input:focus, select:focus, textarea:focus { border-color: #7C3AED; }
+  input[type="file"] { padding: 8px 10px; font-size: 12.5px; color: var(--muted); }
   .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
   .chk-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 6px; }
   .chk-opt { display: flex; align-items: center; gap: 5px; font-size: 12.5px; background: #12141a; border: 1px solid #2A2E37; padding: 6px 10px; border-radius: 8px; cursor: pointer; }
@@ -130,8 +131,10 @@
     <label>Link de Waze (opcional)</label>
     <input type="text" id="f-waze" placeholder="https://waze.com/ul/...">
 
-    <label>Link de imagen (opcional)</label>
-    <input type="text" id="f-imagen" placeholder="https://... (foto del lugar)">
+    <label>Foto del lugar (opcional)</label>
+    <input type="file" id="f-imagen-file" accept="image/*">
+    <div class="sub" id="imagen-upload-status" style="margin-top:6px; margin-bottom:0;"></div>
+    <input type="text" id="f-imagen" placeholder="(o pegá acá un link directo a una imagen)" style="margin-top:8px;">
 
     <label>Descripción / reseña breve (opcional)</label>
     <textarea id="f-descripcion" rows="3" placeholder="Un par de líneas contando qué lo hace especial..."></textarea>
@@ -341,7 +344,8 @@
     document.getElementById("f-meta").value = "";
     document.getElementById("f-waze").value = "";
     document.getElementById("f-imagen").value = "";
-    document.getElementById("f-imagen").value = "";
+    document.getElementById("f-imagen-file").value = "";
+    document.getElementById("imagen-upload-status").textContent = "";
     document.getElementById("f-descripcion").value = "";
     document.querySelectorAll(".chk-row input").forEach(c => c.checked = false);
     document.getElementById("f-patrocinado").checked = false;
@@ -361,6 +365,8 @@
     document.getElementById("f-meta").value = n.meta || "";
     document.getElementById("f-waze").value = n.waze_url || "";
     document.getElementById("f-imagen").value = n.imagen_url || "";
+    document.getElementById("f-imagen-file").value = "";
+    document.getElementById("imagen-upload-status").textContent = "";
     document.getElementById("f-descripcion").value = n.descripcion || "";
     const companiaSet = new Set(n.compania || []);
     document.querySelectorAll(".chk-row input").forEach(c => c.checked = companiaSet.has(c.value));
@@ -371,6 +377,35 @@
   document.getElementById("link-cancelar-edicion").addEventListener("click", (e) => {
     e.preventDefault();
     resetearFormulario();
+  });
+
+  document.getElementById("f-imagen-file").addEventListener("change", async (e) => {
+    const file = e.target.files[0];
+    const status = document.getElementById("imagen-upload-status");
+    if (!file) return;
+    status.style.color = "#9CA3AF";
+    status.textContent = "Subiendo imagen...";
+    try {
+      const nombreArchivo = Date.now() + "_" + file.name.replace(/[^a-zA-Z0-9.\-_]/g, "_");
+      const res = await fetchAutenticado(SUPABASE_URL + "/storage/v1/object/negocios-fotos/" + nombreArchivo, {
+        method: "POST",
+        headers: { "apikey": SUPABASE_ANON_KEY, "Content-Type": file.type },
+        body: file
+      });
+      if (!res.ok) {
+        const errText = await res.text();
+        status.style.color = "#FCA5A5";
+        status.textContent = "No se pudo subir: " + errText;
+        return;
+      }
+      const urlPublica = SUPABASE_URL + "/storage/v1/object/public/negocios-fotos/" + nombreArchivo;
+      document.getElementById("f-imagen").value = urlPublica;
+      status.style.color = "#86EFAC";
+      status.textContent = "Imagen subida ✅";
+    } catch (err) {
+      status.style.color = "#FCA5A5";
+      status.textContent = "Error de red al subir: " + err.message;
+    }
   });
 
   document.getElementById("btn-guardar").addEventListener("click", async () => {
@@ -484,6 +519,6 @@
 
   checkSesion();
 </script>
-<div style="text-align:center; color:#4B5563; font-size:11px; margin-top:8px;">build: v9-detalle-rebrand</div>
+<div style="text-align:center; color:#4B5563; font-size:11px; margin-top:8px;">build: v10-subida-fotos</div>
 </body>
 </html>
