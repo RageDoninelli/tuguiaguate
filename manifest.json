@@ -1,5 +1,6 @@
 {
   "name": "TuGuiaGuate",
+  "id": "/tuguiaguate/publica",
   "short_name": "TGG",
   "description": "¿Qué hacemos hoy? Descubrí actividades, lugares y eventos en Guatemala.",
   "start_url": "./index.html",
