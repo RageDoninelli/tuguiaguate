@@ -1,5 +1,6 @@
 {
   "name": "TGG Admin",
+  "id": "/tuguiaguate/admin",
   "short_name": "TGG Admin",
   "description": "Panel para administrar los negocios de TuGuiaGuate.",
   "start_url": "./tgg-admin.html",
