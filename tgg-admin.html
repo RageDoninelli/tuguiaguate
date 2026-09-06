@@ -107,7 +107,7 @@
       <option value="Hotel y Spa">Hotel y Spa</option>
       <option value="Fiestas">Fiestas</option>
       <option value="Conciertos">Conciertos</option>
-      <option value="Teatro">Teatro</option>
+      <option value="Teatro y Cultura">Teatro y Cultura</option>
     </select>
 
     <div class="row2">
@@ -422,7 +422,7 @@
     formOk.style.display = "none";
 
     const categoria = document.getElementById("f-categoria").value;
-    const colorMap = { "Diversión": "div", "Cines": "cines", "Deportes": "dep", "Comida y bebida": "comida", "Hotel y Spa": "hotel", "Fiestas": "fiestas", "Conciertos": "conciertos", "Teatro": "teatro" };
+    const colorMap = { "Diversión": "div", "Cines": "cines", "Deportes": "dep", "Comida y bebida": "comida", "Hotel y Spa": "hotel", "Fiestas": "fiestas", "Conciertos": "conciertos", "Teatro y Cultura": "teatro" };
     const compania = Array.from(document.querySelectorAll(".chk-row input:checked")).map(c => c.value);
 
     const nuevo = {
@@ -526,7 +526,7 @@
 
   checkSesion();
 </script>
-<div style="text-align:center; color:#4B5563; font-size:11px; margin-top:8px;">build: v11-instalable</div>
+<div style="text-align:center; color:#4B5563; font-size:11px; margin-top:8px;">build: v12-teatro-cultura</div>
 <script>
   if ("serviceWorker" in navigator) {
     window.addEventListener("load", () => {
